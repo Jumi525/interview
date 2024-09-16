@@ -7,14 +7,18 @@ import { OverlayPanel } from "primereact/overlaypanel";
 import { InputText } from "primereact/inputtext";
 import FetchHooks from "../services/queries";
 
+const PAGES = 12;
+
 type TableProps = {
   pages: string;
 };
 
 const Table = ({ pages }: TableProps) => {
+  const { data, error, isLoading } = FetchHooks(pages);
   const bookmarkedLocal = JSON.parse(
     localStorage.getItem("bookmarkedIds") || "[]"
   );
+
   const [toggle, settoggle] = useState(true);
   const op = useRef<OverlayPanel>(null);
   // const inpu = useRef<HTMLInputElement>(null);
@@ -24,12 +28,10 @@ const Table = ({ pages }: TableProps) => {
   const [selectedCategories, setSelectedCategories] =
     useState<number[]>(bookmarkedLocal);
 
-  const { data, error, isLoading } = FetchHooks(pages);
-
   useEffect(() => {
-    if (pag > 12) {
-      const pagRem = Math.ceil(pag % 12);
-      const pageses = Math.ceil(pag / 12);
+    if (pag > PAGES) {
+      const pagRem = Math.ceil(pag % PAGES);
+      const pageses = Math.ceil(pag / PAGES);
       if (pageses === parseInt(pages)) {
         data?.map((val, index) => {
           index < pagRem && setSelectedCategories((prev) => [...prev, val.id]);
@@ -37,12 +39,13 @@ const Table = ({ pages }: TableProps) => {
       } else if (parseInt(pages) <= pageses) {
         data?.map((val) => setSelectedCategories((prev) => [...prev, val.id]));
       }
-    } else if (pag <= 12 && pag >= 1) {
+    } else if (pag <= PAGES && pag >= 1 && pages === "1") {
+      console.log("start");
       data?.map((val, index) => {
         index + 1 <= pag && setSelectedCategories((prev) => [...prev, val.id]);
       });
     }
-  }, [pages, pag]);
+  }, [pages, pag, data]);
 
   const onCategoryChange = (e: CheckboxChangeEvent) => {
     const id = parseInt(e.target.id);
@@ -51,24 +54,6 @@ const Table = ({ pages }: TableProps) => {
     } else {
       setSelectedCategories((prev) => [...prev, id]);
     }
-  };
-
-  useEffect(() => {
-    localStorage.setItem("bookmarkedIds", JSON.stringify(selectedCategories));
-  }, [selectedCategories]);
-
-  const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.bubbles = false;
-    const ne = inpuform.current?.ariaValueMax || "0";
-    setPag(parseInt(ne));
-    // const pageValue = e.target[0].value;
-    // if (inpuform.current == undefined && inpuform.current == null) {
-
-    //   console.log("new", ne);
-    // }
-    setValue("");
   };
 
   const noo = data?.map((value) => ({
@@ -82,6 +67,19 @@ const Table = ({ pages }: TableProps) => {
     ),
     ...value,
   }));
+
+  useEffect(() => {
+    localStorage.setItem("bookmarkedIds", JSON.stringify(selectedCategories));
+  }, [selectedCategories]);
+
+  const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.bubbles = false;
+    const ne = inpuform.current?.ariaValueMax || "0";
+    setPag(parseInt(ne));
+    setValue("");
+  };
 
   const checkBoxMain = (e: CheckboxChangeEvent) => {
     const id = parseInt(e.target.id);
@@ -104,11 +102,9 @@ const Table = ({ pages }: TableProps) => {
       });
   };
 
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     setSelectedCategories((prev) => prev.filter((item) => item !== item));
     e.stopPropagation();
-    e.preventDefault();
-    e.bubbles = false;
   };
 
   if (isLoading)
