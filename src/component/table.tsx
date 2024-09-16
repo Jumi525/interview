@@ -40,7 +40,6 @@ const Table = ({ pages }: TableProps) => {
         data?.map((val) => setSelectedCategories((prev) => [...prev, val.id]));
       }
     } else if (pag <= PAGES && pag >= 1 && pages === "1") {
-      console.log("start");
       data?.map((val, index) => {
         index + 1 <= pag && setSelectedCategories((prev) => [...prev, val.id]);
       });
@@ -185,12 +184,12 @@ const Table = ({ pages }: TableProps) => {
             </div>
           }
         ></Column>
-        <Column field="title" header="title"></Column>
-        <Column field="inscriptions" header="inscriptions"></Column>
-        <Column field="artist_display" header="artist_display"></Column>
-        <Column field="place_of_origin" header="place_of_origin"></Column>
-        <Column field="date_start" header="date_start"></Column>
-        <Column field="date_end" header="date_end"></Column>
+        <Column field="title" header="Title"></Column>
+        <Column field="inscriptions" header="Inscriptions"></Column>
+        <Column field="artist_display" header="Artist Display"></Column>
+        <Column field="place_of_origin" header="Place Of Origin"></Column>
+        <Column field="date_start" header="Date Start"></Column>
+        <Column field="date_end" header="date End"></Column>
       </DataTable>
     </div>
   );
