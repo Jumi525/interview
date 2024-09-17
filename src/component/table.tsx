@@ -1,11 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Checkbox, CheckboxChangeEvent } from "primereact/checkbox";
-import { Button } from "primereact/button";
-import { OverlayPanel } from "primereact/overlaypanel";
 import FetchHooks from "../services/queries";
-import Form from "./form";
+import Columns from "./headers";
 
 const PAGES = 12;
 
@@ -18,12 +16,9 @@ const Table = ({ pages }: TableProps) => {
   const bookmarkedLocal = JSON.parse(
     localStorage.getItem("bookmarkedIds") || "[]"
   );
-
-  const [toggle, settoggle] = useState(true);
-  const op = useRef<OverlayPanel>(null);
-  const [pag, setPag] = useState(0);
   const [selectedCategories, setSelectedCategories] =
     useState<number[]>(bookmarkedLocal);
+  const [pag, setPag] = useState(0);
 
   useEffect(() => {
     if (pag > PAGES) {
@@ -52,8 +47,8 @@ const Table = ({ pages }: TableProps) => {
     }
   };
 
-  const noo = data?.map((value) => ({
-    no: (
+  const TableData = data?.map((value) => ({
+    CheckIcon: (
       <Checkbox
         onChange={onCategoryChange}
         checked={selectedCategories.some((item) => item === value.id)}
@@ -67,27 +62,6 @@ const Table = ({ pages }: TableProps) => {
   useEffect(() => {
     localStorage.setItem("bookmarkedIds", JSON.stringify(selectedCategories));
   }, [selectedCategories]);
-
-  const checkBoxMain = (e: CheckboxChangeEvent) => {
-    const id = parseInt(e.target.id);
-    if (selectedCategories.includes(id)) {
-      setSelectedCategories((prev) => prev.filter((item) => item !== id));
-    } else {
-      setSelectedCategories((prev) => [...prev, id]);
-    }
-
-    e.checked &&
-      data?.map((value) => {
-        !selectedCategories.includes(value.id) &&
-          setSelectedCategories((prev) => [...prev, value.id]);
-      });
-    e.checked === false &&
-      data?.map((value) => {
-        setSelectedCategories((prev) =>
-          prev.filter((item) => item !== value.id)
-        );
-      });
-  };
 
   if (isLoading)
     return (
@@ -103,35 +77,23 @@ const Table = ({ pages }: TableProps) => {
     );
   return (
     <div className="card">
-      <DataTable value={noo} showGridlines tableStyle={{ minWidth: "6rem" }}>
+      <DataTable
+        value={TableData}
+        showGridlines
+        tableStyle={{ minWidth: "6rem" }}
+      >
         <Column
-          field="no"
+          field="CheckIcon"
           className="bg-red-400"
           header={
-            <div className="flex justify-center">
-              <Checkbox
-                onChange={checkBoxMain}
-                checked={selectedCategories.some(
-                  (item) => item === parseInt(pages)
-                )}
-                id={pages}
-              ></Checkbox>
-              <Button
-                icon={`pi pi-angle-${toggle ? "up" : "down"}`}
-                aria-label="Filter"
-                onClick={(e) => {
-                  op.current?.toggle(e);
-                  settoggle((prev) => !prev);
-                }}
-                text
-                className="ml-2 h-5 w-[1.3rem]"
-              />
-              <Form
-                op={op}
-                setPag={setPag}
-                setSelectedCategories={setSelectedCategories}
-              />
-            </div>
+            <Columns
+              field="no"
+              setPag={setPag}
+              pages={pages}
+              data={data}
+              selectedCategories={selectedCategories}
+              setSelectedCategories={setSelectedCategories}
+            />
           }
         ></Column>
         <Column field="title" header="Title"></Column>
