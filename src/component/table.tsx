@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Checkbox, CheckboxChangeEvent } from "primereact/checkbox";
 import { Button } from "primereact/button";
 import { OverlayPanel } from "primereact/overlaypanel";
-import { InputText } from "primereact/inputtext";
 import FetchHooks from "../services/queries";
+import Form from "./form";
 
 const PAGES = 12;
 
@@ -21,9 +21,6 @@ const Table = ({ pages }: TableProps) => {
 
   const [toggle, settoggle] = useState(true);
   const op = useRef<OverlayPanel>(null);
-  // const inpu = useRef<HTMLInputElement>(null);
-  const inpuform = useRef<HTMLFormElement>(null);
-  const [value, setValue] = useState("");
   const [pag, setPag] = useState(0);
   const [selectedCategories, setSelectedCategories] =
     useState<number[]>(bookmarkedLocal);
@@ -71,15 +68,6 @@ const Table = ({ pages }: TableProps) => {
     localStorage.setItem("bookmarkedIds", JSON.stringify(selectedCategories));
   }, [selectedCategories]);
 
-  const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.bubbles = false;
-    const ne = inpuform.current?.ariaValueMax || "0";
-    setPag(parseInt(ne));
-    setValue("");
-  };
-
   const checkBoxMain = (e: CheckboxChangeEvent) => {
     const id = parseInt(e.target.id);
     if (selectedCategories.includes(id)) {
@@ -99,11 +87,6 @@ const Table = ({ pages }: TableProps) => {
           prev.filter((item) => item !== value.id)
         );
       });
-  };
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    setSelectedCategories((prev) => prev.filter((item) => item !== item));
-    e.stopPropagation();
   };
 
   if (isLoading)
@@ -143,44 +126,11 @@ const Table = ({ pages }: TableProps) => {
                 text
                 className="ml-2 h-5 w-[1.3rem]"
               />
-              <OverlayPanel ref={op}>
-                <form
-                  className="flex flex-col "
-                  ref={inpuform}
-                  onSubmit={submitForm}
-                  aria-valuemax={parseInt(value)}
-                >
-                  <InputText
-                    value={value}
-                    onChange={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      e.bubbles = false;
-                      setValue(e.target.value);
-                    }}
-                    placeholder="No of rows"
-                    className="rounded-md"
-                  />
-                  <div className="mt-2 max-w-max mx-auto flex gap-2">
-                    <Button
-                      rounded
-                      label="Submit"
-                      outlined
-                      type="submit"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.bubbles = false;
-                      }}
-                    />
-                    <Button
-                      rounded
-                      label="Undo"
-                      outlined
-                      onClick={handleClick}
-                    />
-                  </div>
-                </form>
-              </OverlayPanel>
+              <Form
+                op={op}
+                setPag={setPag}
+                setSelectedCategories={setSelectedCategories}
+              />
             </div>
           }
         ></Column>

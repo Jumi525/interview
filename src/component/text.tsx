@@ -5,59 +5,46 @@
 // import { Button } from "primereact/button";
 // import { OverlayPanel } from "primereact/overlaypanel";
 // import { InputText } from "primereact/inputtext";
-// import axios from "axios";
-// import { useQuery } from "@tanstack/react-query";
-// import { datakeys, apiKeys } from "../services/api";
+// import FetchHooks from "../services/queries";
+
+// const PAGES = 12;
 
 // type TableProps = {
 //   pages: string;
 // };
 
 // const Table = ({ pages }: TableProps) => {
+//   const { data, error, isLoading } = FetchHooks(pages);
 //   const bookmarkedLocal = JSON.parse(
 //     localStorage.getItem("bookmarkedIds") || "[]"
 //   );
 
-//   const [checked, setChecked] = useState(true);
 //   const [toggle, settoggle] = useState(true);
-//   const op = useRef(null);
+//   const op = useRef<OverlayPanel>(null);
+//   // const inpu = useRef<HTMLInputElement>(null);
+//   const inpuform = useRef<HTMLFormElement>(null);
 //   const [value, setValue] = useState("");
 //   const [pag, setPag] = useState(0);
 //   const [selectedCategories, setSelectedCategories] =
 //     useState<number[]>(bookmarkedLocal);
 
-//   const fetchData = () =>
-//     axios
-//       .get<datakeys>(`https://api.artic.edu/api/v1/artworks?page=${pages}`)
-//       .then((res) => res.data.data);
-
-//   const { data, error, isLoading } = useQuery<apiKeys[], Error>({
-//     queryKey: [pages, "data"],
-//     queryFn: fetchData,
-//   });
-
 //   useEffect(() => {
-//     if (pag > 12) {
-//       const pagRem = Math.ceil(pag % 12);
-//       const pageses = Math.ceil(pag / 12);
-//       console.log("pageses", pageses);
-//       console.log("pagRem", pagRem);
-//       console.log("pages", pages);
+//     if (pag > PAGES) {
+//       const pagRem = Math.ceil(pag % PAGES);
+//       const pageses = Math.ceil(pag / PAGES);
 //       if (pageses === parseInt(pages)) {
 //         data?.map((val, index) => {
 //           index < pagRem && setSelectedCategories((prev) => [...prev, val.id]);
 //         });
 //       } else if (parseInt(pages) <= pageses) {
-//         console.log("remaining");
 //         data?.map((val) => setSelectedCategories((prev) => [...prev, val.id]));
 //       }
-//     } else if (pag <= 12 && pag >= 1) {
-//       console.log("bellow 12");
+//     } else if (pag <= PAGES && pag >= 1 && pages === "1") {
 //       data?.map((val, index) => {
 //         index + 1 <= pag && setSelectedCategories((prev) => [...prev, val.id]);
 //       });
 //     }
-//   }, [data, pages, pag]);
+//   }, [pages, pag, data]);
 
 //   const onCategoryChange = (e: CheckboxChangeEvent) => {
 //     const id = parseInt(e.target.id);
@@ -67,10 +54,6 @@
 //       setSelectedCategories((prev) => [...prev, id]);
 //     }
 //   };
-
-//   useEffect(() => {
-//     localStorage.setItem("bookmarkedIds", JSON.stringify(selectedCategories));
-//   }, [selectedCategories]);
 
 //   const noo = data?.map((value) => ({
 //     no: (
@@ -84,9 +67,21 @@
 //     ...value,
 //   }));
 
+//   useEffect(() => {
+//     localStorage.setItem("bookmarkedIds", JSON.stringify(selectedCategories));
+//   }, [selectedCategories]);
+
+//   const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
+//     e.preventDefault();
+//     e.stopPropagation();
+//     e.bubbles = false;
+//     const ne = inpuform.current?.ariaValueMax || "0";
+//     setPag(parseInt(ne));
+//     setValue("");
+//   };
+
 //   const checkBoxMain = (e: CheckboxChangeEvent) => {
 //     const id = parseInt(e.target.id);
-//     data?.map((value) => console.log(value.id));
 //     if (selectedCategories.includes(id)) {
 //       setSelectedCategories((prev) => prev.filter((item) => item !== id));
 //     } else {
@@ -106,25 +101,23 @@
 //       });
 //   };
 
-//   const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-//     console.log(e.target);
+//   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 //     setSelectedCategories((prev) => prev.filter((item) => item !== item));
-//     // selectedCategories.map((value) => {
-//     //   setSelectedCategories((prev) => prev.filter((item) => item !== value));
-//     // });
+//     e.stopPropagation();
 //   };
 
-//   const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
-//     e.preventDefault();
-//     const pageValue = e.target[0].value;
-//     setPag(parseInt(pageValue));
-//     console.log(parseInt(pageValue));
-//   };
-
-//   const handlesClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-//     console.log("sumbit");
-//   };
-
+//   if (isLoading)
+//     return (
+//       <div className="grid place-content-center text-blue-500 my-5">
+//         Loading...
+//       </div>
+//     );
+//   if (error)
+//     return (
+//       <div className="grid place-content-center text-red-700 my-5">
+//         {error.message}
+//       </div>
+//     );
 //   return (
 //     <div className="card">
 //       <DataTable value={noo} showGridlines tableStyle={{ minWidth: "6rem" }}>
@@ -144,17 +137,27 @@
 //                 icon={`pi pi-angle-${toggle ? "up" : "down"}`}
 //                 aria-label="Filter"
 //                 onClick={(e) => {
-//                   op.current.toggle(e);
+//                   op.current?.toggle(e);
 //                   settoggle((prev) => !prev);
 //                 }}
 //                 text
 //                 className="ml-2 h-5 w-[1.3rem]"
 //               />
 //               <OverlayPanel ref={op}>
-//                 <form className="flex flex-col " onSubmit={submitForm}>
+//                 <form
+//                   className="flex flex-col "
+//                   ref={inpuform}
+//                   onSubmit={submitForm}
+//                   aria-valuemax={parseInt(value)}
+//                 >
 //                   <InputText
 //                     value={value}
-//                     onChange={(e) => setValue(e.target.value)}
+//                     onChange={(e) => {
+//                       e.preventDefault();
+//                       e.stopPropagation();
+//                       e.bubbles = false;
+//                       setValue(e.target.value);
+//                     }}
 //                     placeholder="No of rows"
 //                     className="rounded-md"
 //                   />
@@ -163,7 +166,11 @@
 //                       rounded
 //                       label="Submit"
 //                       outlined
-//                       onClick={handlesClick}
+//                       type="submit"
+//                       onClick={(e) => {
+//                         e.stopPropagation();
+//                         e.bubbles = false;
+//                       }}
 //                     />
 //                     <Button
 //                       rounded
@@ -177,40 +184,15 @@
 //             </div>
 //           }
 //         ></Column>
-//         <Column field="title" header="title"></Column>
-//         <Column field="inscriptions" header="inscriptions"></Column>
-//         <Column field="artist_display" header="artist_display"></Column>
-//         <Column field="place_of_origin" header="place_of_origin"></Column>
-//         <Column field="date_start" header="date_start"></Column>
-//         <Column field="date_end" header="date_end"></Column>
+//         <Column field="title" header="Title"></Column>
+//         <Column field="inscriptions" header="Inscriptions"></Column>
+//         <Column field="artist_display" header="Artist Display"></Column>
+//         <Column field="place_of_origin" header="Place Of Origin"></Column>
+//         <Column field="date_start" header="Date Start"></Column>
+//         <Column field="date_end" header="date End"></Column>
 //       </DataTable>
 //     </div>
 //   );
 // };
 
 // export default Table;
-
-// useEffect(() => {
-//   axios
-//     .get<datakeys>(`https://api.artic.edu/api/v1/artworks?page=${pages}`)
-//     .then((res) => setdata(res.data.data));
-// }, [pages]);
-
-// useEffect(fetchData, [pages]);
-
-// const pageValue = e.target[0].value;
-//     // const pageses = Math.ceil(parseInt(pageValue) / parseInt(pages));
-//     setPag(pageValue);
-// if (pageValue > 12) {
-//   const pagRem = Math.ceil(parseInt(pageValue) % 12);
-//   const pageses = Math.ceil(parseInt(pageValue) / 12);
-//   // const newPage = pageValue - 12;
-//   console.log(pageses);
-//   console.log(pagRem);
-//   if (pageses === parseInt(pages)) {
-//     for (let i = 0; i > pagRem; i++) {
-//       console.log(console.log("hello"));
-//     }
-//   } else {
-//     data?.map((value) => console.log(value.id));
-//   }
